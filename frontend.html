@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Chat Platform</title>
+  <link rel="stylesheet" href="frontendcss.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script>
+    // Enhanced scroll animations with direction
+const animateElements = (entries, observer) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const direction = el.dataset.animateFrom || 'bottom';
+
+      el.classList.add('animate-in');
+      if (direction === 'left') el.classList.add('from-left');
+      if (direction === 'right') el.classList.add('from-right');
+
+      requestAnimationFrame(() => {
+        el.classList.add('visible');
+      });
+
+      observer.unobserve(el);
+    }
+  });
+};
+
+const setupScrollAnimations = () => {
+  const elements = document.querySelectorAll('[data-animate]');
+  const options = {
+    threshold: 0.2,
+    rootMargin: '0px'
+  };
+
+  const observer = new IntersectionObserver(animateElements, options);
+  elements.forEach(el => observer.observe(el));
+};
+
+// Enhanced parallax effect
+const setupParallax = () => {
+  const hero = document.querySelector('.hero');
+  const cards = document.querySelectorAll('.floating-card');
+  const maxRotate = 10;
+
+  hero.addEventListener('mousemove', (e) => {
+    const { left, top, width, height } = hero.getBoundingClientRect();
+    const x = (e.clientX - left) / width;
+    const y = (e.clientY - top) / height;
+
+    cards.forEach((card, index) => {
+      const speed = 1 + index * 0.2;
+      const rotateX = (y - 0.5) * maxRotate * speed;
+      const rotateY = (x - 0.5) * maxRotate * speed;
+
+      card.style.transform = `
+        perspective(1000px)
+        rotateX(${-rotateX}deg)
+        rotateY(${rotateY}deg)
+        translateZ(${speed * 10}px)
+      `;
+    });
+  });
+
+  hero.addEventListener('mouseleave', () => {
+    cards.forEach(card => {
+      card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateZ(0)';
+    });
+  });
+};
+
+// Enhanced floating animation for stats
+const setupStatsAnimation = () => {
+  const stats = document.querySelectorAll('.stat-card');
+
+  stats.forEach((stat, index) => {
+    const delay = index * 0.2;
+    stat.style.animationDelay = `${delay}s`;
+  });
+};
+
+// Parallax effect for floating cards
+function initParallax() {
+  document.addEventListener('mousemove', (e) => {
+    const cards = document.querySelectorAll('.floating-card');
+    const mouseX = e.clientX / window.innerWidth;
+    const mouseY = e.clientY / window.innerHeight;
+
+    cards.forEach(card => {
+      const speed = parseFloat(card.getAttribute('data-speed') || '50');
+      const x = (mouseX - 0.5) * speed;
+      const y = (mouseY - 0.5) * speed;
+
+      card.style.transform = `translate(${x}px, ${y}px)`;
+    });
+  });
+}
+
+
+// Smooth scroll function
+function scrollToSection(id) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+}
+
+// Navigation functions
+function scrollToDemo() {
+  scrollToSection('demo-form');
+}
+
+function scrollToFeatures() {
+  scrollToSection('features');
+}
+
+// Toast notification
+function showToast(message, type = 'success') {
+  const toast = document.getElementById('toast');
+  const messageEl = toast.querySelector('.toast-message');
+
+  messageEl.textContent = message;
+  toast.className = `toast show ${type}`;
+
+  setTimeout(() => {
+    toast.className = 'toast';
+  }, 3000);
+}
+
+// Form handling
+function initForm() {
+  const form = document.getElementById('waitlistForm');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const submitButton = form.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    submitButton.querySelector('.button-text').textContent = 'Submitting...';
+
+    const formData = {
+      name: form.name.value,
+      email: form.email.value,
+      company: form.company.value,
+      message: form.message.value || null
+    };
+
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Something went wrong');
+      }
+
+      showToast('Thank you for your interest! We\'ll be in touch soon.');
+      form.reset();
+
+      // Animate form completion
+      const formWrapper = document.querySelector('.form-wrapper');
+      formWrapper.classList.add('submitted');
+
+    } catch (error) {
+      showToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.querySelector('.button-text').textContent = 'Request Demo';
+    }
+  });
+}
+
+// Navbar scroll effect
+let lastScroll = 0;
+window.addEventListener('scroll', () => {
+  const navbar = document.querySelector('.navbar');
+  const currentScroll = window.pageYOffset;
+
+  if (currentScroll > lastScroll) {
+    navbar.style.transform = 'translateY(-100%)';
+  } else {
+    navbar.style.transform = 'translateY(0)';
+  }
+
+  lastScroll = currentScroll;
+});
+
+
+// FAQ Accordion (retained from original)
+function setupFAQ() {
+  const faqItems = document.querySelectorAll('.faq-item');
+
+  faqItems.forEach(item => {
+    const question = item.querySelector('.faq-question');
+
+    question.addEventListener('click', () => {
+      const isActive = item.classList.contains('active');
+
+      // Close all FAQ items
+      faqItems.forEach(faq => faq.classList.remove('active'));
+
+      // Open clicked item if it wasn't active
+      if (!isActive) {
+        item.classList.add('active');
+      }
+    });
+  });
+}
+
+// Add particle effect
+function createParticles() {
+  const particlesContainer = document.createElement('div');
+  particlesContainer.className = 'particles';
+  document.querySelector('.hero').appendChild(particlesContainer);
+
+  for (let i = 0; i < 50; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+
+    // Random positions and delays
+    particle.style.left = `${Math.random() * 100}%`;
+    particle.style.animationDelay = `${Math.random() * 5}s`;
+
+    particlesContainer.appendChild(particle);
+  }
+}
+
+// Initialize particles
+createParticles();
+
+// Add this CSS for particles to the existing styles
+const particleStyles = document.createElement('style');
+particleStyles.textContent = `
+  .particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+  }
+
+  .particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 50%;
+    animation: rise 15s infinite linear;
+    opacity: 0;
+  }
+
+  @keyframes rise {
+    0% {
+      transform: translateY(100vh) scale(0);
+      opacity: 0;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      transform: translateY(-100vh) scale(1);
+      opacity: 0;
+    }
+  }
+`;
+
+document.head.appendChild(particleStyles);
+
+// Initialize all animations
+document.addEventListener('DOMContentLoaded', () => {
+  setupScrollAnimations();
+  setupParallax();
+  setupStatsAnimation();
+
+  // Add animation classes to elements
+  document.querySelectorAll('.feature-card').forEach((card, index) => {
+    card.setAttribute('data-animate', '');
+    card.setAttribute('data-animate-from', index % 2 === 0 ? 'left' : 'right');
+  });
+
+  document.querySelectorAll('.timeline-item').forEach((item, index) => {
+    item.setAttribute('data-animate', '');
+    item.setAttribute('data-animate-from', 'bottom');
+  });
+
+  // Gradient text typing effect reset
+  const gradientText = document.querySelector('.gradient-text');
+  if (gradientText) {
+    gradientText.style.width = '0';
+    setTimeout(() => {
+      gradientText.style.width = '100%';
+    }, 100);
+  }
+
+  initForm();
+  setupFAQ();
+});
+
+
+// Add smooth transition for navigation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  });
+});
+
+// Chat Interface Functions
+function toggleChat() {
+  const chatInterface = document.getElementById('chatInterface');
+  chatInterface.classList.toggle('open');
+  if (chatInterface.classList.contains('open')) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+}
+
+function autoResize(textarea) {
+  textarea.style.height = 'auto';
+  textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+}
+
+function handleKeyDown(event) {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
+
+function clearChat() {
+  const chatMessages = document.getElementById('chatMessages');
+  chatMessages.innerHTML = `
+    <div class="message system">
+      <div class="message-content">
+        <p>Welcome! I'm your AI assistant. How can I help you today?</p>
+        <div class="suggested-prompts">
+          <button onclick="usePrompt('Tell me about your features')">Tell me about your features</button>
+          <button onclick="usePrompt('How can you help my business?')">How can you help my business?</button>
+          <button onclick="usePrompt('What makes you different?')">What makes you different?</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function usePrompt(prompt) {
+  const textarea = document.querySelector('.chat-input-wrapper textarea');
+  textarea.value = prompt;
+  textarea.focus();
+  autoResize(textarea);
+}
+
+function addMessage(content, role = 'assistant') {
+  const chatMessages = document.getElementById('chatMessages');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${role}`;
+
+  const messageContent = document.createElement('div');
+  messageContent.className = 'message-content';
+  messageContent.innerHTML = `<p>${content}</p>`;
+
+  messageDiv.appendChild(messageContent);
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function sendMessage() {
+  const textarea = document.querySelector('.chat-input-wrapper textarea');
+  const message = textarea.value.trim();
+
+  if (!message) return;
+
+  // Add user message
+  addMessage(message, 'user');
+  textarea.value = '';
+  autoResize(textarea);
+
+  // Add typing indicator
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'message assistant typing';
+  typingDiv.innerHTML = `
+    <div class="message-content">
+      <p><i class="fas fa-circle-notch fa-spin"></i> AI is thinking...</p>
+    </div>
+  `;
+  document.getElementById('chatMessages').appendChild(typingDiv);
+
+  try {
+    // Simulate API call delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Remove typing indicator
+    typingDiv.remove();
+
+    // Add AI response
+    addMessage('I am a demo chatbot. This is a simulated response to demonstrate the interface design. In a real implementation, this would be connected to an AI model to provide meaningful responses to your queries.');
+
+  } catch (error) {
+    console.error('Error:', error);
+    typingDiv.remove();
+    addMessage('Sorry, there was an error processing your message. Please try again.', 'system');
+  }
+}
+
+// Initialize corner squares rotation based on scroll
+window.addEventListener('scroll', () => {
+  const squares = document.querySelectorAll('.corner-square');
+  const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 360;
+
+  squares.forEach((square, index) => {
+    const rotation = scrollPercent * (index % 2 === 0 ? 1 : -1);
+    square.style.transform = `rotate(${rotation}deg)`;
+  });
+});
+  </script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">SkyNet</div>
+      <div class="nav-buttons">
+        <button class="nav-cta" onclick="scrollToDemo()">Get Started</button>
+        <button class="sign-in-btn" onclick="toggleChat()">
+          <i class="fas fa-message"></i>
+          Try AI Chat
+        </button>
+      </div>
+    </div>
+  </nav>
+  
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="noise-overlay"></div>
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="glowing-text">
+          <span class="gradient-text">Knowledge at your tips.....</span>
+          <br>with AI-Powered Chat
+        </h1>
+        <p class="hero-subtitle">
+          Deploy an intelligent chatbot that understands your business and delights your customers
+        </p>
+        <div class="cta-group">
+          <button class="primary-button" onclick="scrollToDemo()">
+            Request Demo <i class="fas fa-arrow-right"></i>
+          </button>
+          <button class="secondary-button" onclick="scrollToFeatures()">
+            Explore Features <i class="fas fa-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="floating-card card-1">
+          <i class="fas fa-robot"></i>
+          <span>AI-Powered</span>
+        </div>
+        <div class="floating-card card-2">
+          <i class="fas fa-bolt"></i>
+          <span>Lightning Fast</span>
+        </div>
+        <div class="floating-card card-3">
+          <i class="fas fa-brain"></i>
+          <span>Self-Learning</span>
+        </div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <div class="mouse">
+        <div class="wheel"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Features</span>
+        <h2>Everything you need for exceptional customer service</h2>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-brain"></i>
+          </div>
+          <h3>Advanced AI Understanding</h3>
+          <p>Natural language processing that understands context and intent</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3>Instant Responses</h3>
+          <p>Lightning-fast replies to keep your customers engaged</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3>Learning & Analytics</h3>
+          <p>Continuously improves from interactions with detailed insights</p>
+        </div>
+        <div class="feature-card">
+          <div class="icon-wrapper">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Enterprise Security</h3>
+          <p>Bank-grade encryption and compliance standards</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Process</span>
+        <h2>Simple Integration, Powerful Results</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-number">01</div>
+          <h3>Connect Your Data</h3>
+          <p>Integrate your knowledge base and previous customer interactions</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-number">02</div>
+          <h3>Train & Customize</h3>
+          <p>Personalize responses and train on your specific use cases</p>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-number">03</div>
+          <h3>Deploy & Scale</h3>
+          <p>Go live across all channels and scale automatically</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">99.9%</div>
+          <div class="stat-label">Uptime</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">50ms</div>
+          <div class="stat-label">Response Time</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">1M+</div>
+          <div class="stat-label">Daily Chats</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">24/7</div>
+          <div class="stat-label">Support</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Demo Form -->
+  <section class="demo-form" id="demo-form">
+    <div class="container">
+      <div class="form-wrapper">
+        <div class="form-header">
+            
+          <span class="section-tag">Get Started</span>
+          <h2>Transform Your Customer Support Today</h2>
+          <p>Schedule a demo to see how our AI chatbot can help your business</p>
+        </div>
+        <form id="waitlistForm" class="contact-form">
+          <div class="form-group">
+            <input type="text" id="name" name="name" required>
+            <label for="name">Full Name</label>
+          </div>
+          <div class="form-group">
+            <input type="email" id="email" name="email" required>
+            <label for="email">Work Email</label>
+          </div>
+          <div class="form-group">
+            <input type="text" id="company" name="company" required>
+            <label for="company">Company Name</label>
+          </div>
+          <div class="form-group">
+            <textarea id="message" name="message"></textarea>
+            <label for="message">Tell us about your needs</label>
+          </div>
+          <button type="submit" class="submit-button">
+            <span class="button-text">Request Demo</span>
+            <span class="button-icon"><i class="fas fa-arrow-right"></i></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <div class="toast-content">
+      <i class="fas fa-check-circle success-icon"></i>
+      <i class="fas fa-times-circle error-icon"></i>
+      <span class="toast-message"></span>
+    </div>
+  </div>
+
+  <!-- Corner Squares -->
+  <div class="corner-square top-left"></div>
+  <div class="corner-square top-right"></div>
+  <div class="corner-square bottom-left"></div>
+  <div class="corner-square bottom-right"></div>
+
+  <!-- Chat Interface -->
+  <div class="chat-interface" id="chatInterface">
+    <div class="chat-container">
+      <div class="chat-header">
+        <h3>AI Chat Assistant</h3>
+        <div class="chat-header-actions">
+          <button class="clear-chat" onclick="clearChat()">
+            <i class="fas fa-trash"></i>
+            Clear chat
+          </button>
+          <button class="close-chat" onclick="toggleChat()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="message system">
+          <div class="message-content">
+            <p>Welcome! I'm your AI assistant. How can I help you today?</p>
+            <div class="suggested-prompts">
+              <button onclick="usePrompt('Tell me about your features')">Tell me about your features</button>
+              <button onclick="usePrompt('How can you help my business?')">How can you help my business?</button>
+              <button onclick="usePrompt('What makes you different?')">What makes you different?</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chat-input-container">
+        <div class="chat-input-wrapper">
+          <textarea 
+            placeholder="Message ChatGenius..." 
+            onkeydown="handleKeyDown(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <button class="send-button" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+          </button>
+        </div>
+        <p class="chat-footer">ChatGenius may produce inaccurate information about people, places, or facts.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
